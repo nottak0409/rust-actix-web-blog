@@ -4,6 +4,9 @@ use diesel::Queryable;
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
 use serde::{Deserialize, Serialize};
+use diesel::prelude::*;
+use crate::error::ApiError;
+use actix_web::web;
 
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
@@ -33,6 +36,18 @@ impl Repository {
         .build(manager)
         .expect("Failed to create a pool.");
         Self { pool }
+    }
+
+    pub async fn create_post(&self, new_post: NewPost,) -> Result<Post, ApiError> {
+        let mut conn = self.pool.get()?;
+        let post = web::block(move || {
+            diesel::insert_into(posts::table)
+            .values(new_post)
+            .get_result(&mut conn)
+        })
+        .await??;
+
+        Ok(post)
     }
 }
 

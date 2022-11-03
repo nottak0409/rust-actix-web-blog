@@ -1,3 +1,5 @@
+use actix_web::{HttpResponse, ResponseError};
+
 #[derive(thiserror::Error, Debug)]
 
 pub enum ApiError {
@@ -21,3 +23,16 @@ impl_from_trait!(diesel::r2d2::Error);
 impl_from_trait!(diesel::r2d2::PoolError);
 impl_from_trait!(diesel::result::Error);
 impl_from_trait!(actix_web::error::BlockingError);
+
+impl ResponseError for ApiError {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            ApiError::NotFound => {
+                HttpResponse::NotFound().finish()
+            }
+            ApiError::Other(_) => {
+                HttpResponse::ServiceUnavailable().finish()
+            }
+        }
+    }
+}

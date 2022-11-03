@@ -1,8 +1,26 @@
 use crate::schema::*;
+use diesel::Insertable;
+use diesel::Queryable;
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::sqlite::SqliteConnection;
+use serde::{Deserialize, Serialize};
 
 type DbPool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
+
+#[derive(Deserialize, Insertable)]
+#[diesel(table_name = posts)]
+pub struct NewPost {
+    title: String,
+    body: String
+}
+
+#[derive(Serialize, Queryable)]
+pub struct Post {
+    id: i32,
+    title: String,
+    body: String,
+    published: bool,
+}
 
 pub struct Repository {
     pool: DbPool,
